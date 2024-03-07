@@ -172,8 +172,11 @@ void SliceableMeshInstance3D::slice_surface_along_plane(
 			verts_are_above[i] = p_plane_os.is_point_over(verts[i]);
 			verts_normals[i] = p_mdt->get_vertex_normal(verts_indices[i]);
 			verts_uvs[i] = p_mdt->get_vertex_uv(verts_indices[i]);
-			verts_bones[i] = p_mdt->get_vertex_bones(verts_indices[i]);
-			verts_weights[i] = p_mdt->get_vertex_weights(verts_indices[i]);
+			if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_BONES)
+			{
+				verts_bones[i] = p_mdt->get_vertex_bones(verts_indices[i]);
+				verts_weights[i] = p_mdt->get_vertex_weights(verts_indices[i]);
+			}
 
 			if (verts_are_above[i]) ++n_of_verts_above;
 		}
@@ -184,8 +187,12 @@ void SliceableMeshInstance3D::slice_surface_along_plane(
 			}
 			case 0: { // all vertices are below -> face is kept
 				for (size_t i = 0; i < 3; i++) {
-					p_st_sliced->set_normal(verts_normals[i]); p_st_sliced->set_uv(verts_uvs[i]);
-					p_st_sliced->set_bones(verts_bones[i]); p_st_sliced->set_weights(verts_weights[i]);
+					p_st_sliced->set_normal(verts_normals[i]); p_st_sliced->set_uv(verts_uvs[i]);					
+					if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_BONES)
+					{
+						p_st_sliced->set_bones(verts_bones[i]);
+						p_st_sliced->set_weights(verts_weights[i]);
+					}
 					p_st_sliced->add_vertex(verts[i]);
 				}
 				break;
