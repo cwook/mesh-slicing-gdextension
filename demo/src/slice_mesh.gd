@@ -13,5 +13,7 @@ func slice():
 	
 #	var time_start = Time.get_ticks_usec()
 	self.slice_along_plane(Plane(-plane_node.global_transform.basis.z, plane_node.global_position))
-	self.set_script(null)
+	# remove the script from skinned meshes after 1st slice to prevent crashes (for now)
+	if skeleton:
+		self.set_script(null)
 #	print("Slicing ", self.get_parent().name, " took ", str(Time.get_ticks_usec() - time_start), "us")

@@ -124,6 +124,7 @@ Ref<ArrayMesh> SliceableMeshInstance3D::slice_mesh_along_plane(
 
 		// shrinks the vertex array by creating an index array (triangle list)
 		// has a high performance penalty for big meshes
+		// todo: check if this breaks skinned meshes (since the changed indices will likely mess up the bone transfers)
 		if (indexed) st_sliced->index();
 		// commit sliced surface as a new surface
 		st_sliced->commit(new_mesh);
@@ -132,41 +133,27 @@ Ref<ArrayMesh> SliceableMeshInstance3D::slice_mesh_along_plane(
 			new_mesh->surface_set_material(created_surface_count, mdt->get_material());
 			++created_surface_count;
 		}
-		// add skin
-		mdt->create_from_surface(new_mesh, i);
-		PackedInt32Array vertex_bones;
-		vertex_bones.append(22);
-		vertex_bones.append(22);
-		vertex_bones.append(22);
-		vertex_bones.append(22);
-		PackedFloat32Array vertex_weights;
-		vertex_weights.append(1.f);
-		vertex_weights.append(1.f);
-		vertex_weights.append(1.f);
-		vertex_weights.append(1.f);
 		
-		for (size_t j = 0; j < mdt->get_vertex_count(); j++) {
+		// add bone weights from original mesh
+		mdt->create_from_surface(new_mesh, i);
+		
+		Ref<MeshDataTool> mdt_original { new MeshDataTool() };
+		mdt_original->create_from_surface(p_array_mesh, i);
+		
+		for (size_t j = 0; j < mdt_original->get_vertex_count(); j++) {
 			// head bone: 22
-			mdt->set_vertex_bones(j, vertex_bones);
-			mdt->set_vertex_weights(j, vertex_weights);
+			if (j < mdt->get_vertex_count())
+			{
+				mdt->set_vertex_bones(j, mdt_original->get_vertex_bones(j));
+				mdt->set_vertex_weights(j, mdt_original->get_vertex_weights(j));
+			}
 		}
+		
 		
 		new_mesh->clear_surfaces();
 		mdt->commit_to_surface(new_mesh);
-		
-		/*
-		String bones("MDT bones: [");
-		for (size_t i = 0; i < mdt->get_vertex_count(); i++) {
-			PackedInt32Array vertex_bones = mdt->get_vertex_bones(i);
-			for (size_t j = 0; j < vertex_bones.size(); j++) {
-				if (j != 0)
-					bones += ",";
-				bones += String("{_}").format(vertex_bones[j]);
-			}
-		}
-		bones += "]";
-		WARN_PRINT(bones);
-		*/
+		//bones += "]";
+		//WARN_PRINT(bones);
 	}
 
 	// shrinks the vertex array by creating an index array (triangle list)
