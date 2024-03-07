@@ -135,25 +135,25 @@ Ref<ArrayMesh> SliceableMeshInstance3D::slice_mesh_along_plane(
 		}
 		
 		// add bone weights from original mesh
+		/*
 		mdt->create_from_surface(new_mesh, i);
 		
 		Ref<MeshDataTool> mdt_original { new MeshDataTool() };
 		mdt_original->create_from_surface(p_array_mesh, i);
 		
-		for (size_t j = 0; j < mdt_original->get_vertex_count(); j++) {
-			// head bone: 22
-			if (j < mdt->get_vertex_count())
-			{
-				mdt->set_vertex_bones(j, mdt_original->get_vertex_bones(j));
-				mdt->set_vertex_weights(j, mdt_original->get_vertex_weights(j));
+		for (size_t f = 0; f < mdt_original->get_face_count(); f++) {
+			for (size_t idx = 0; idx < 3; idx++) {
+				if (j < mdt->get_vertex_count())
+				{
+					mdt->set_vertex_bones(j, mdt_original->get_vertex_bones(j));
+					mdt->set_vertex_weights(j, mdt_original->get_vertex_weights(j));
+				}
 			}
 		}
 		
-		
 		new_mesh->clear_surfaces();
 		mdt->commit_to_surface(new_mesh);
-		//bones += "]";
-		//WARN_PRINT(bones);
+		*/
 	}
 
 	// shrinks the vertex array by creating an index array (triangle list)
@@ -183,6 +183,8 @@ void SliceableMeshInstance3D::slice_surface_along_plane(
 		bool verts_are_above [3];
 		Vector3 verts_normals [3];
 		Vector2 verts_uvs [3];
+		PackedInt32Array verts_bones [3];
+		PackedFloat32Array verts_weights [3];
 
 		int32_t n_of_verts_above = 0;
 
@@ -192,6 +194,8 @@ void SliceableMeshInstance3D::slice_surface_along_plane(
 			verts_are_above[i] = p_plane_os.is_point_over(verts[i]);
 			verts_normals[i] = p_mdt->get_vertex_normal(verts_indices[i]);
 			verts_uvs[i] = p_mdt->get_vertex_uv(verts_indices[i]);
+			verts_bones[i] = p_mdt->get_vertex_bones(verts_indices[i]);
+			verts_weights[i] = p_mdt->get_vertex_weights(verts_indices[i]);
 
 			if (verts_are_above[i]) ++n_of_verts_above;
 		}
@@ -202,7 +206,9 @@ void SliceableMeshInstance3D::slice_surface_along_plane(
 			}
 			case 0: { // all vertices are below -> face is kept
 				for (size_t i = 0; i < 3; i++) {
-					p_st_sliced->set_normal(verts_normals[i]); p_st_sliced->set_uv(verts_uvs[i]); p_st_sliced->add_vertex(verts[i]);
+					p_st_sliced->set_normal(verts_normals[i]); p_st_sliced->set_uv(verts_uvs[i]);
+					p_st_sliced->set_bones(verts_bones[i]); p_st_sliced->set_weights(verts_weights[i]);
+					p_st_sliced->add_vertex(verts[i]);
 				}
 				break;
 			}
@@ -235,7 +241,7 @@ void SliceableMeshInstance3D::slice_surface_along_plane(
 
 				if (p_pos_on_lid_defined) { add_lid(p_st_lid, lid_normal, n0, p_pos_on_lid, n1); }
 				else { p_pos_on_lid = n0; p_pos_on_lid_defined = true; } // no need to add a lid
-
+				
 				break;
 			}
 			case 1: { // one vertex are above and two below -> remove face, create two new faces, create lid
