@@ -124,7 +124,6 @@ Ref<ArrayMesh> SliceableMeshInstance3D::slice_mesh_along_plane(
 
 		// shrinks the vertex array by creating an index array (triangle list)
 		// has a high performance penalty for big meshes
-		// todo: check if this breaks skinned meshes (since the changed indices will likely mess up the bone transfers)
 		if (indexed) st_sliced->index();
 		// commit sliced surface as a new surface
 		st_sliced->commit(new_mesh);
@@ -133,27 +132,6 @@ Ref<ArrayMesh> SliceableMeshInstance3D::slice_mesh_along_plane(
 			new_mesh->surface_set_material(created_surface_count, mdt->get_material());
 			++created_surface_count;
 		}
-		
-		// add bone weights from original mesh
-		/*
-		mdt->create_from_surface(new_mesh, i);
-		
-		Ref<MeshDataTool> mdt_original { new MeshDataTool() };
-		mdt_original->create_from_surface(p_array_mesh, i);
-		
-		for (size_t f = 0; f < mdt_original->get_face_count(); f++) {
-			for (size_t idx = 0; idx < 3; idx++) {
-				if (j < mdt->get_vertex_count())
-				{
-					mdt->set_vertex_bones(j, mdt_original->get_vertex_bones(j));
-					mdt->set_vertex_weights(j, mdt_original->get_vertex_weights(j));
-				}
-			}
-		}
-		
-		new_mesh->clear_surfaces();
-		mdt->commit_to_surface(new_mesh);
-		*/
 	}
 
 	// shrinks the vertex array by creating an index array (triangle list)
@@ -165,7 +143,7 @@ Ref<ArrayMesh> SliceableMeshInstance3D::slice_mesh_along_plane(
 	if (new_mesh->get_surface_count() > created_surface_count) {
 		new_mesh->surface_set_material(created_surface_count, m_inner_material);
 	}
-	
+
 	return new_mesh;
 }
 
