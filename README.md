@@ -63,3 +63,10 @@ Add the `includePath` from the following code snippet to your `.vscode/c_cpp_pro
             ],
 // ...
 ```
+
+## Credits
+Original addon by [@timo-eberl](https://github.com/timo-eberl)
+
+Skinning support by [@cwook](https://github.com/cwook)
+
+Demo model and texture by [Kenney](https://kenney.nl/]
