@@ -173,10 +173,9 @@ void SliceableMeshInstance3D::slice_surface_along_plane(
 			verts_normals[i] = p_mdt->get_vertex_normal(verts_indices[i]);
 			verts_uvs[i] = p_mdt->get_vertex_uv(verts_indices[i]);
 			if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_BONES)
-			{
 				verts_bones[i] = p_mdt->get_vertex_bones(verts_indices[i]);
+			if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_WEIGHTS)
 				verts_weights[i] = p_mdt->get_vertex_weights(verts_indices[i]);
-			}
 
 			if (verts_are_above[i]) ++n_of_verts_above;
 		}
@@ -187,12 +186,11 @@ void SliceableMeshInstance3D::slice_surface_along_plane(
 			}
 			case 0: { // all vertices are below -> face is kept
 				for (size_t i = 0; i < 3; i++) {
-					p_st_sliced->set_normal(verts_normals[i]); p_st_sliced->set_uv(verts_uvs[i]);					
+					p_st_sliced->set_normal(verts_normals[i]); p_st_sliced->set_uv(verts_uvs[i]);
 					if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_BONES)
-					{
 						p_st_sliced->set_bones(verts_bones[i]);
+					if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_WEIGHTS)
 						p_st_sliced->set_weights(verts_weights[i]);
-					}
 					p_st_sliced->add_vertex(verts[i]);
 				}
 				break;
@@ -219,10 +217,29 @@ void SliceableMeshInstance3D::slice_surface_along_plane(
 				Vector3 n0_normal = verts_normals[b].lerp(verts_normals[a0], n0_interpolator);
 				Vector3 n1_normal = verts_normals[b].lerp(verts_normals[a1], n1_interpolator);
 
+				// TODO: interpolate bone weights
+
 				// previous order was b -> a0 -> a1, so new order is b -> n0 -> n1
-				p_st_sliced->set_normal(verts_normals[b]); p_st_sliced->set_uv(verts_uvs[b]); p_st_sliced->add_vertex(verts[b]);
-				p_st_sliced->set_normal(n0_normal); p_st_sliced->set_uv(n0_uv); p_st_sliced->add_vertex(n0);
-				p_st_sliced->set_normal(n1_normal); p_st_sliced->set_uv(n1_uv); p_st_sliced->add_vertex(n1);
+				p_st_sliced->set_normal(verts_normals[b]); p_st_sliced->set_uv(verts_uvs[b]);
+				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_BONES)
+					p_st_sliced->set_bones(verts_bones[b]);
+				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_WEIGHTS)
+					p_st_sliced->set_weights(verts_weights[b]);
+				p_st_sliced->add_vertex(verts[b]);
+
+				p_st_sliced->set_normal(n0_normal); p_st_sliced->set_uv(n0_uv);
+				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_BONES)
+					p_st_sliced->set_bones(verts_bones[a0]);
+				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_WEIGHTS)
+					p_st_sliced->set_weights(verts_weights[a0]);
+				p_st_sliced->add_vertex(n0);
+
+				p_st_sliced->set_normal(n1_normal); p_st_sliced->set_uv(n1_uv);
+				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_BONES)
+					p_st_sliced->set_bones(verts_bones[a1]);
+				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_WEIGHTS)
+					p_st_sliced->set_weights(verts_weights[a1]);
+				p_st_sliced->add_vertex(n1);
 
 				if (p_pos_on_lid_defined) { add_lid(p_st_lid, lid_normal, n0, p_pos_on_lid, n1); }
 				else { p_pos_on_lid = n0; p_pos_on_lid_defined = true; } // no need to add a lid
@@ -251,15 +268,50 @@ void SliceableMeshInstance3D::slice_surface_along_plane(
 				Vector3 n0_normal = verts_normals[a].lerp(verts_normals[b0], n0_interpolator);
 				Vector3 n1_normal = verts_normals[a].lerp(verts_normals[b1], n1_interpolator);
 
+				// TODO: interpolate bone weights
+
 				// previous order was b1 -> a -> b0, so the first triangle is b1 -> n1 -> n0
-				p_st_sliced->set_normal(verts_normals[b1]); p_st_sliced->set_uv(verts_uvs[b1]); p_st_sliced->add_vertex(verts[b1]);
-				p_st_sliced->set_normal(n1_normal); p_st_sliced->set_uv(n1_uv); p_st_sliced->add_vertex(n1);
-				p_st_sliced->set_normal(n0_normal); p_st_sliced->set_uv(n0_uv); p_st_sliced->add_vertex(n0);
+				p_st_sliced->set_normal(verts_normals[b1]); p_st_sliced->set_uv(verts_uvs[b1]);
+				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_BONES)
+					p_st_sliced->set_bones(verts_bones[b1]);
+				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_WEIGHTS)
+					p_st_sliced->set_weights(verts_weights[b1]);
+				p_st_sliced->add_vertex(verts[b1]);
+
+				p_st_sliced->set_normal(n1_normal); p_st_sliced->set_uv(n1_uv);
+				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_BONES)
+					p_st_sliced->set_bones(verts_bones[b1]);
+				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_WEIGHTS)
+					p_st_sliced->set_weights(verts_weights[b1]);
+				p_st_sliced->add_vertex(n1);
+
+				p_st_sliced->set_normal(n0_normal); p_st_sliced->set_uv(n0_uv);
+				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_BONES)
+					p_st_sliced->set_bones(verts_bones[b0]);
+				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_WEIGHTS)
+					p_st_sliced->set_weights(verts_weights[b0]);
+				p_st_sliced->add_vertex(n0);
 
 				// the second triangle is b1 -> n0 -> b0
-				p_st_sliced->set_normal(verts_normals[b1]); p_st_sliced->set_uv(verts_uvs[b1]); p_st_sliced->add_vertex(verts[b1]);
-				p_st_sliced->set_normal(n0_normal); p_st_sliced->set_uv(n0_uv); p_st_sliced->add_vertex(n0);
-				p_st_sliced->set_normal(verts_normals[b0]); p_st_sliced->set_uv(verts_uvs[b0]); p_st_sliced->add_vertex(verts[b0]);
+				p_st_sliced->set_normal(verts_normals[b1]); p_st_sliced->set_uv(verts_uvs[b1]);
+				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_BONES)
+					p_st_sliced->set_bones(verts_bones[b1]);
+				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_WEIGHTS)
+					p_st_sliced->set_weights(verts_weights[b1]);
+				p_st_sliced->add_vertex(verts[b1]);
+
+				p_st_sliced->set_normal(n0_normal); p_st_sliced->set_uv(n0_uv);
+				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_BONES)
+					p_st_sliced->set_bones(verts_bones[b0]);
+				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_WEIGHTS)
+					p_st_sliced->set_weights(verts_weights[b0]);
+				p_st_sliced->add_vertex(n0);
+
+				p_st_sliced->set_normal(verts_normals[b0]); p_st_sliced->set_uv(verts_uvs[b0]);
+					p_st_sliced->set_bones(verts_bones[b0]);
+				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_WEIGHTS)
+					p_st_sliced->set_weights(verts_weights[b0]);
+				p_st_sliced->add_vertex(verts[b0]);
 
 				if (p_pos_on_lid_defined) { add_lid(p_st_lid, lid_normal, n1, p_pos_on_lid, n0); }
 				else { p_pos_on_lid = n0; p_pos_on_lid_defined = true; } // no need to add a lid

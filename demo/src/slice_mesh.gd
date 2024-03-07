@@ -3,7 +3,7 @@ extends SliceableMeshInstance3D
 @export var plane_node : Node3D
 @export var update_rate := 0.0
 
-@onready var original_mesh : Mesh = self.mesh
+@onready var original_mesh : Mesh = self.mesh.duplicate()
 
 func _ready() -> void:
 	slice()

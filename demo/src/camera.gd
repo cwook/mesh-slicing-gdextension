@@ -20,12 +20,13 @@ func _input(ev: InputEvent) -> void:
 			MOUSE_BUTTON_WHEEL_DOWN:
 				zoom = min(zoom+0.1, 10.0)
 	
+	# camera rotation
 	if rmb_down and ev is InputEventMouseMotion:
-		rotation.y += ev.relative.x * sensitivity.x
-		rotation.x += ev.relative.y * sensitivity.y
+		rotation.y -= ev.relative.x * sensitivity.x
+		rotation.x -= ev.relative.y * sensitivity.y
 		rotation.x = clamp(rotation.x, -PI/2.0 + 0.001, PI/2.0 + 0.001)
 	
 	if ev is InputEventMouse:
-	# rotate the camera about rotate_origin
+		# camera offset
 		global_position = rotate_origin + zoom * global_basis.z
 
