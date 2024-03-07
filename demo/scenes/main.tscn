@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3 uid="uid://bx1vgheicnank"]
+[gd_scene load_steps=22 format=3 uid="uid://bx1vgheicnank"]
 
 [ext_resource type="Script" path="res://src/main.gd" id="1_kmve1"]
 [ext_resource type="Material" uid="uid://cp8mors8fvy7j" path="res://materials/transparent.tres" id="2_xq8sf"]
@@ -9,6 +9,7 @@
 [ext_resource type="Material" uid="uid://bpjxfhwlqmso" path="res://materials/inner_earth.tres" id="6_a3guo"]
 [ext_resource type="ArrayMesh" uid="uid://cf0s20ov6cl8k" path="res://meshes/multi_surface_cube.mesh" id="6_d6j3i"]
 [ext_resource type="Material" uid="uid://cmani75d48ji2" path="res://materials/earth.tres" id="7_72lvl"]
+[ext_resource type="Script" path="res://src/camera.gd" id="10_xacwh"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_q0qmt"]
 
@@ -134,3 +135,4 @@ transform = Transform3D(-0.0278011, -0.26847, -0.962888, -0.322797, 0.914065, -0
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(0.393942, -0.373787, 0.839698, 1.49012e-08, 0.913574, 0.406672, -0.919135, -0.160205, 0.359895, 3.70021, 3.74844, 1.58591)
+script = ExtResource("10_xacwh")

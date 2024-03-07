@@ -9,6 +9,9 @@
 #include <godot_cpp/classes/immediate_mesh.hpp>
 #include <godot_cpp/classes/placeholder_mesh.hpp>
 
+#include <godot_cpp/templates/vector.hpp>
+#include <string>
+
 using namespace godot;
 
 void SliceableMeshInstance3D::_bind_methods() {
@@ -129,6 +132,41 @@ Ref<ArrayMesh> SliceableMeshInstance3D::slice_mesh_along_plane(
 			new_mesh->surface_set_material(created_surface_count, mdt->get_material());
 			++created_surface_count;
 		}
+		// add skin
+		mdt->create_from_surface(new_mesh, i);
+		PackedInt32Array vertex_bones;
+		vertex_bones.append(22);
+		vertex_bones.append(22);
+		vertex_bones.append(22);
+		vertex_bones.append(22);
+		PackedFloat32Array vertex_weights;
+		vertex_weights.append(1.f);
+		vertex_weights.append(1.f);
+		vertex_weights.append(1.f);
+		vertex_weights.append(1.f);
+		
+		for (size_t j = 0; j < mdt->get_vertex_count(); j++) {
+			// head bone: 22
+			mdt->set_vertex_bones(j, vertex_bones);
+			mdt->set_vertex_weights(j, vertex_weights);
+		}
+		
+		new_mesh->clear_surfaces();
+		mdt->commit_to_surface(new_mesh);
+		
+		/*
+		String bones("MDT bones: [");
+		for (size_t i = 0; i < mdt->get_vertex_count(); i++) {
+			PackedInt32Array vertex_bones = mdt->get_vertex_bones(i);
+			for (size_t j = 0; j < vertex_bones.size(); j++) {
+				if (j != 0)
+					bones += ",";
+				bones += String("{_}").format(vertex_bones[j]);
+			}
+		}
+		bones += "]";
+		WARN_PRINT(bones);
+		*/
 	}
 
 	// shrinks the vertex array by creating an index array (triangle list)
@@ -140,7 +178,7 @@ Ref<ArrayMesh> SliceableMeshInstance3D::slice_mesh_along_plane(
 	if (new_mesh->get_surface_count() > created_surface_count) {
 		new_mesh->surface_set_material(created_surface_count, m_inner_material);
 	}
-
+	
 	return new_mesh;
 }
 
