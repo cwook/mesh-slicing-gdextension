@@ -15,8 +15,7 @@ private:
 	Ref<Material> m_inner_material;
 	
 	// data structure holding info about the starting vertex of a lid
-	struct LidData
-	{
+	struct LidData {
 		Vector3 position;
 		PackedInt32Array bones;
 		PackedFloat32Array weights;

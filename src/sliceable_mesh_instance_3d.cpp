@@ -117,13 +117,9 @@ Ref<ArrayMesh> SliceableMeshInstance3D::slice_mesh_along_plane(
 	}
 
 	// todo different lids for each surface? Could be a path to support concave meshes, maybe.
+	// keep track of the first created vertex (which is on the edge of the slice),
+	// as well as the bones and weights for the first vertex of the lid of a skinned mesh
 	LidData lid_data;
-	// this point is used for adding the "lid"
-	// it will be set to the first created vertex (which is on the edge of the slice).
-	//Vector3 pos_on_lid;
-	// tracks the bones and weights for the first vertex of the lid of a skinned mesh
-	// todo: should we make separate slice_surface_along_plane functions for skinned vs. non-skinned meshes?
-	//PackedInt32Array bones_on_lid; PackedFloat32Array weights_on_lid;
 	// keep track if pos_on_lid has been set. the first created vertex will set it.
 	bool pos_on_lid_defined = false;
 
