@@ -25,4 +25,4 @@ func slice():
 	if update_delay > 0.0:
 		var tw := create_tween()
 		tw.tween_interval(update_delay)
-		tw.tween_callback(self.call_deferred.bind("slice"))
+		tw.tween_callback(slice)

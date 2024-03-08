@@ -248,10 +248,6 @@ mesh = SubResource("PlaneMesh_8cp1k")
 [node name="CuttingPlane" parent="." instance=ExtResource("9_5nc8d")]
 transform = Transform3D(0.0114723, 0.0282676, -0.999536, 0.00107174, 0.9996, 0.0282822, 0.999933, -0.00139513, 0.0114377, -0.100886, 1.90875, -0.319295)
 
-[node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(0.393942, -0.373787, 0.839698, 1.49012e-08, 0.913574, 0.406672, -0.919135, -0.160205, 0.359895, 4.07194, 3.97207, 1.74524)
-script = ExtResource("3_u64x0")
-
 [node name="SkinnedCharacter" parent="." instance=ExtResource("3_jaj0o")]
 
 [node name="Skeleton3D" parent="SkinnedCharacter/Root" index="0"]
@@ -303,11 +299,9 @@ bones/35/rotation = Quaternion(0.201199, -0.0134891, 0.00392889, 0.97945)
 bones/35/scale = Vector3(1, 1, 1)
 bones/36/rotation = Quaternion(6.83591e-07, -3.2559e-06, 1.79932e-06, 1)
 bones/37/rotation = Quaternion(0.658379, -0.507611, 0.459994, 0.311887)
-bones/37/scale = Vector3(1, 1, 1)
 bones/38/rotation = Quaternion(0.157164, 0.966325, -0.0926457, -0.181474)
 bones/38/scale = Vector3(1, 1, 1)
 bones/39/rotation = Quaternion(-0.510632, -0.0628713, 0.626886, 0.585078)
-bones/39/scale = Vector3(1, 1, 1)
 bones/40/rotation = Quaternion(0.000319933, 0.00120123, 0.00140693, 0.999998)
 bones/41/rotation = Quaternion(-0.0567295, -0.0774615, -0.00014823, 0.99538)
 bones/41/scale = Vector3(1, 1, 1)
@@ -346,5 +340,20 @@ plane_node = NodePath("../../../../CuttingPlane")
 
 [node name="AnimationPlayer" parent="SkinnedCharacter" index="1"]
 autoplay = "Action"
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="SubViewportContainer"]
+size = Vector2i(1152, 648)
+
+[node name="Camera3D" type="Camera3D" parent="SubViewportContainer/SubViewport"]
+transform = Transform3D(0.393942, -0.373787, 0.839698, 1.49012e-08, 0.913574, 0.406672, -0.919135, -0.160205, 0.359895, 4.07194, 3.97207, 1.74524)
+script = ExtResource("3_u64x0")
 
 [editable path="SkinnedCharacter"]

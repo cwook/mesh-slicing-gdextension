@@ -85,6 +85,25 @@ void add_lid(
 	p_st->set_normal(p_lid_normal); p_st->set_uv(Vector2(0,0)); p_st->add_vertex(p_v2);
 }
 
+void add_lid_skinned(
+	const Ref<SurfaceTool> p_st, const Vector3 &p_lid_normal,
+	const Vector3 &p_v0, const Vector3 &p_v1, const Vector3 &p_v2,
+	const PackedInt32Array &p_bones_0, const PackedFloat32Array &p_weights_0,
+	const PackedInt32Array &p_bones_1, const PackedFloat32Array &p_weights_1,
+	const PackedInt32Array &p_bones_2, const PackedFloat32Array &p_weights_2
+) {
+	return;
+	p_st->set_normal(p_lid_normal); p_st->set_uv(Vector2(0,0));
+	p_st->set_bones(p_bones_0); p_st->set_weights(p_weights_0);
+	p_st->add_vertex(p_v0);
+	p_st->set_normal(p_lid_normal); p_st->set_uv(Vector2(0,0));
+	p_st->set_bones(p_bones_1); p_st->set_weights(p_weights_1);
+	p_st->add_vertex(p_v1);
+	p_st->set_normal(p_lid_normal); p_st->set_uv(Vector2(0,0));
+	p_st->set_bones(p_bones_2); p_st->set_weights(p_weights_2);
+	p_st->add_vertex(p_v2);
+}
+
 Ref<ArrayMesh> SliceableMeshInstance3D::slice_mesh_along_plane(
 	const Ref<ArrayMesh> p_array_mesh, const Plane p_plane, const bool indexed
 ) const {
@@ -244,7 +263,12 @@ void SliceableMeshInstance3D::slice_surface_along_plane(
 				}
 				p_st_sliced->add_vertex(n1);
 
-				if (p_pos_on_lid_defined) { add_lid(p_st_lid, lid_normal, n0, p_pos_on_lid, n1); }
+				if (p_pos_on_lid_defined) {
+					if (use_bones)
+						add_lid_skinned(p_st_lid, lid_normal, n0, p_pos_on_lid, n1, verts_bones[b], verts_weights[b], verts_bones[a0], verts_weights[a0], verts_bones[a1], verts_weights[a1]);
+					else
+						add_lid(p_st_lid, lid_normal, n0, p_pos_on_lid, n1);
+				}
 				else { p_pos_on_lid = n0; p_pos_on_lid_defined = true; } // no need to add a lid
 				
 				break;
@@ -317,7 +341,12 @@ void SliceableMeshInstance3D::slice_surface_along_plane(
 				}
 				p_st_sliced->add_vertex(verts[b0]);
 
-				if (p_pos_on_lid_defined) { add_lid(p_st_lid, lid_normal, n1, p_pos_on_lid, n0); }
+				if (p_pos_on_lid_defined) {
+					if (use_bones)
+						add_lid_skinned(p_st_lid, lid_normal, n0, p_pos_on_lid, n1, verts_bones[b1], verts_weights[b1], verts_bones[b0], verts_weights[b0], verts_bones[b0], verts_weights[b0]);
+					else
+						add_lid(p_st_lid, lid_normal, n0, p_pos_on_lid, n1);
+				}
 				else { p_pos_on_lid = n0; p_pos_on_lid_defined = true; } // no need to add a lid
 
 				break;
