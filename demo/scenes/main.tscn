@@ -68,6 +68,7 @@ transform = Transform3D(0.872945, 0.241958, 0.423583, -0.267104, 0.963668, 2.923
 
 [node name="UnslicedMesh" type="MeshInstance3D" parent="Rectangle"]
 transform = Transform3D(1, 0, 0, 0, 1.35, 0, 0, 0, 3, 0.251433, 0.436935, -0.256414)
+visible = false
 material_override = ExtResource("2_xq8sf")
 mesh = SubResource("BoxMesh_03v4s")
 skeleton = NodePath("../..")
@@ -84,6 +85,7 @@ plane_node = NodePath("../../CuttingPlane")
 transform = Transform3D(0.493073, 0.141855, 0.311056, -0.100003, 0.58188, -0.106843, -0.326922, 0.0359581, 0.501825, -0.391652, 2.68381, -1.98945)
 
 [node name="UnslicedMesh" type="MeshInstance3D" parent="MultiMeshCube"]
+visible = false
 material_override = ExtResource("2_xq8sf")
 mesh = ExtResource("6_d6j3i")
 skeleton = NodePath("../..")

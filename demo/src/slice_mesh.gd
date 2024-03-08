@@ -1,7 +1,7 @@
 extends SliceableMeshInstance3D
 
 @export var plane_node : Node3D
-@export var update_rate := 0.0
+@export var update_delay := 0.0
 
 @onready var original_mesh : Mesh = self.mesh.duplicate()
 
@@ -10,7 +10,7 @@ func _ready() -> void:
 
 func _process(_delta):
 	# do this after every other _process to avoid z-fighting when rotating the plane
-	if update_rate <= 0.0:
+	if update_delay <= 0.0:
 		call_deferred("slice")
 
 func slice():
@@ -22,7 +22,7 @@ func slice():
 	#if skeleton:
 		#self.set_script(null)
 #	print("Slicing ", self.get_parent().name, " took ", str(Time.get_ticks_usec() - time_start), "us")
-	if update_rate > 0.0:
+	if update_delay > 0.0:
 		var tw := create_tween()
-		tw.tween_interval(update_rate)
+		tw.tween_interval(update_delay)
 		tw.tween_callback(self.call_deferred.bind("slice"))

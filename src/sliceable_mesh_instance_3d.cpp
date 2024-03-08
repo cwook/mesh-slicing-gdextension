@@ -153,6 +153,9 @@ void SliceableMeshInstance3D::slice_surface_along_plane(
 ) const {
 
 	Vector3 lid_normal = p_plane_os.normal;
+	
+	// we only want to add bones and weights if source surface is actually are a skinned mesh
+	bool use_bones = p_mdt->get_format() & (Mesh::ARRAY_FORMAT_BONES | Mesh::ARRAY_FORMAT_WEIGHTS);
 
 	for (size_t face_idx = 0; face_idx < p_mdt->get_face_count(); ++face_idx) {
 		// vertex data
@@ -172,10 +175,10 @@ void SliceableMeshInstance3D::slice_surface_along_plane(
 			verts_are_above[i] = p_plane_os.is_point_over(verts[i]);
 			verts_normals[i] = p_mdt->get_vertex_normal(verts_indices[i]);
 			verts_uvs[i] = p_mdt->get_vertex_uv(verts_indices[i]);
-			if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_BONES)
+			if (use_bones) {
 				verts_bones[i] = p_mdt->get_vertex_bones(verts_indices[i]);
-			if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_WEIGHTS)
 				verts_weights[i] = p_mdt->get_vertex_weights(verts_indices[i]);
+			}
 
 			if (verts_are_above[i]) ++n_of_verts_above;
 		}
@@ -187,10 +190,10 @@ void SliceableMeshInstance3D::slice_surface_along_plane(
 			case 0: { // all vertices are below -> face is kept
 				for (size_t i = 0; i < 3; i++) {
 					p_st_sliced->set_normal(verts_normals[i]); p_st_sliced->set_uv(verts_uvs[i]);
-					if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_BONES)
+					if (use_bones) {
 						p_st_sliced->set_bones(verts_bones[i]);
-					if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_WEIGHTS)
 						p_st_sliced->set_weights(verts_weights[i]);
+					}
 					p_st_sliced->add_vertex(verts[i]);
 				}
 				break;
@@ -221,24 +224,24 @@ void SliceableMeshInstance3D::slice_surface_along_plane(
 
 				// previous order was b -> a0 -> a1, so new order is b -> n0 -> n1
 				p_st_sliced->set_normal(verts_normals[b]); p_st_sliced->set_uv(verts_uvs[b]);
-				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_BONES)
+				if (use_bones) {
 					p_st_sliced->set_bones(verts_bones[b]);
-				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_WEIGHTS)
 					p_st_sliced->set_weights(verts_weights[b]);
+				}
 				p_st_sliced->add_vertex(verts[b]);
 
 				p_st_sliced->set_normal(n0_normal); p_st_sliced->set_uv(n0_uv);
-				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_BONES)
+				if (use_bones) {
 					p_st_sliced->set_bones(verts_bones[a0]);
-				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_WEIGHTS)
 					p_st_sliced->set_weights(verts_weights[a0]);
+				}
 				p_st_sliced->add_vertex(n0);
 
 				p_st_sliced->set_normal(n1_normal); p_st_sliced->set_uv(n1_uv);
-				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_BONES)
+				if (use_bones) {
 					p_st_sliced->set_bones(verts_bones[a1]);
-				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_WEIGHTS)
 					p_st_sliced->set_weights(verts_weights[a1]);
+				}
 				p_st_sliced->add_vertex(n1);
 
 				if (p_pos_on_lid_defined) { add_lid(p_st_lid, lid_normal, n0, p_pos_on_lid, n1); }
@@ -272,45 +275,46 @@ void SliceableMeshInstance3D::slice_surface_along_plane(
 
 				// previous order was b1 -> a -> b0, so the first triangle is b1 -> n1 -> n0
 				p_st_sliced->set_normal(verts_normals[b1]); p_st_sliced->set_uv(verts_uvs[b1]);
-				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_BONES)
+				if (use_bones) {
 					p_st_sliced->set_bones(verts_bones[b1]);
-				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_WEIGHTS)
 					p_st_sliced->set_weights(verts_weights[b1]);
+				}
 				p_st_sliced->add_vertex(verts[b1]);
 
 				p_st_sliced->set_normal(n1_normal); p_st_sliced->set_uv(n1_uv);
-				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_BONES)
+				if (use_bones) {
 					p_st_sliced->set_bones(verts_bones[b1]);
-				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_WEIGHTS)
 					p_st_sliced->set_weights(verts_weights[b1]);
+				}
 				p_st_sliced->add_vertex(n1);
 
 				p_st_sliced->set_normal(n0_normal); p_st_sliced->set_uv(n0_uv);
-				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_BONES)
+				if (use_bones) {
 					p_st_sliced->set_bones(verts_bones[b0]);
-				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_WEIGHTS)
 					p_st_sliced->set_weights(verts_weights[b0]);
+				}
 				p_st_sliced->add_vertex(n0);
 
 				// the second triangle is b1 -> n0 -> b0
 				p_st_sliced->set_normal(verts_normals[b1]); p_st_sliced->set_uv(verts_uvs[b1]);
-				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_BONES)
+				if (use_bones) {
 					p_st_sliced->set_bones(verts_bones[b1]);
-				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_WEIGHTS)
 					p_st_sliced->set_weights(verts_weights[b1]);
+				}
 				p_st_sliced->add_vertex(verts[b1]);
 
 				p_st_sliced->set_normal(n0_normal); p_st_sliced->set_uv(n0_uv);
-				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_BONES)
+				if (use_bones) {
 					p_st_sliced->set_bones(verts_bones[b0]);
-				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_WEIGHTS)
 					p_st_sliced->set_weights(verts_weights[b0]);
+				}
 				p_st_sliced->add_vertex(n0);
 
 				p_st_sliced->set_normal(verts_normals[b0]); p_st_sliced->set_uv(verts_uvs[b0]);
+				if (use_bones) {
 					p_st_sliced->set_bones(verts_bones[b0]);
-				if (p_mdt->get_format() & Mesh::ARRAY_FORMAT_WEIGHTS)
 					p_st_sliced->set_weights(verts_weights[b0]);
+				}
 				p_st_sliced->add_vertex(verts[b0]);
 
 				if (p_pos_on_lid_defined) { add_lid(p_st_lid, lid_normal, n1, p_pos_on_lid, n0); }
