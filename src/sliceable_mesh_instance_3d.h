@@ -35,7 +35,7 @@ private:
 	) const;
 	void slice_surface_along_plane(
 		const Ref<MeshDataTool> p_mdt, const Ref<SurfaceTool> p_st_sliced, const Ref<SurfaceTool> p_st_lid,
-		Vector3 &p_pos_on_lid, bool &p_pos_on_lid_defined, const Plane p_plane_os
+		Vector3 &p_pos_on_lid, PackedInt32Array &p_bones_on_lid, PackedFloat32Array &p_weights_on_lid, bool &p_pos_on_lid_defined, const Plane p_plane_os
 	) const;
 };
 

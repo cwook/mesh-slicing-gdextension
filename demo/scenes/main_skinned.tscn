@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://dk6pixinijt6t"]
+[gd_scene load_steps=19 format=3 uid="uid://dk6pixinijt6t"]
 
 [ext_resource type="Script" path="res://src/main.gd" id="1_txey7"]
 [ext_resource type="PackedScene" uid="uid://bsq4bxvgyor5w" path="res://meshes/SkinnedCharacter.blend" id="3_jaj0o"]
@@ -7,6 +7,7 @@
 [ext_resource type="Material" uid="uid://dt810cs2m1enn" path="res://materials/inner.tres" id="5_5jakr"]
 [ext_resource type="Material" uid="uid://cp8mors8fvy7j" path="res://materials/transparent.tres" id="5_db8gr"]
 [ext_resource type="Script" path="res://src/slice_mesh.gd" id="6_bgx85"]
+[ext_resource type="Script" path="res://src/viewport.gd" id="8_2cs82"]
 [ext_resource type="PackedScene" uid="uid://migofo6ctkfb" path="res://scenes/cutting_plane.tscn" id="9_5nc8d"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_q0qmt"]
@@ -25,6 +26,17 @@ ambient_light_color = Color(0.301961, 0.301961, 0.301961, 1)
 albedo_color = Color(0, 0, 0, 1)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_8cp1k"]
+
+[sub_resource type="GDScript" id="GDScript_d326p"]
+script/source = "extends Skeleton3D
+
+func _input(ev: InputEvent) -> void:
+	if ev is InputEventKey:
+		if ev.pressed and not ev.echo:
+			match ev.keycode:
+				KEY_R:
+					show_rest_only = !show_rest_only
+"
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_eds1x"]
 resource_name = "skin"
@@ -275,16 +287,16 @@ bones/18/rotation = Quaternion(0.000216263, 0.0856413, 0.996325, -0.00142984)
 bones/18/scale = Vector3(1, 1, 1)
 bones/19/rotation = Quaternion(9.30155e-05, -1.73225e-09, 0.999999, 0.00144307)
 bones/19/scale = Vector3(1, 1, 1)
-bones/20/rotation = Quaternion(0.102037, -0.0386853, -0.00268135, 0.994025)
+bones/20/rotation = Quaternion(0.102114, -8.2288e-09, -1.18806e-08, 0.994773)
 bones/21/rotation = Quaternion(0.0118946, 1.00854e-08, 1.10452e-08, 0.999929)
 bones/22/rotation = Quaternion(0.0491658, 2.67474e-10, -6.23697e-11, 0.998791)
 bones/23/rotation = Quaternion(0.0766158, 5.10965e-10, 5.33664e-11, 0.997061)
 bones/23/scale = Vector3(1, 1, 1)
-bones/24/rotation = Quaternion(-0.19496, 0.108653, 0.0040648, 0.974766)
+bones/24/rotation = Quaternion(-0.149104, 0.0398206, 0.00742941, 0.987991)
 bones/26/rotation = Quaternion(0.652553, 0.119857, 0.547946, -0.509475)
 bones/26/scale = Vector3(1, 1, 1)
-bones/27/rotation = Quaternion(0.122462, 0.719936, -0.172749, 0.660948)
-bones/28/rotation = Quaternion(0.632582, -0.198492, -0.290986, 0.68976)
+bones/27/rotation = Quaternion(0.1608, 0.725119, -0.197942, 0.63966)
+bones/28/rotation = Quaternion(0.715799, 0.0200057, -0.164618, 0.678331)
 bones/28/scale = Vector3(1, 1, 1)
 bones/29/rotation = Quaternion(0.0857995, 0.721165, 0.0485067, 0.685716)
 bones/30/rotation = Quaternion(0.0567275, -0.0774651, 0.000148622, 0.99538)
@@ -299,9 +311,9 @@ bones/35/rotation = Quaternion(0.201199, -0.0134891, 0.00392889, 0.97945)
 bones/35/scale = Vector3(1, 1, 1)
 bones/36/rotation = Quaternion(6.83591e-07, -3.2559e-06, 1.79932e-06, 1)
 bones/37/rotation = Quaternion(0.658379, -0.507611, 0.459994, 0.311887)
-bones/38/rotation = Quaternion(0.157164, 0.966325, -0.0926457, -0.181474)
+bones/38/rotation = Quaternion(0.139509, 0.968579, -0.0865293, -0.186826)
 bones/38/scale = Vector3(1, 1, 1)
-bones/39/rotation = Quaternion(-0.510632, -0.0628713, 0.626886, 0.585078)
+bones/39/rotation = Quaternion(-0.529606, -0.072231, 0.59877, 0.596469)
 bones/40/rotation = Quaternion(0.000319933, 0.00120123, 0.00140693, 0.999998)
 bones/41/rotation = Quaternion(-0.0567295, -0.0774615, -0.00014823, 0.99538)
 bones/41/scale = Vector3(1, 1, 1)
@@ -315,7 +327,7 @@ bones/48/rotation = Quaternion(0.980139, 0.116473, 0.160405, 0.00573582)
 bones/48/scale = Vector3(1.00004, 1, 1)
 bones/49/rotation = Quaternion(0.226818, 0.046625, 0.0444875, 0.971803)
 bones/49/scale = Vector3(1, 1, 1)
-bones/50/rotation = Quaternion(-0.538217, -0.235869, -0.177459, 0.789428)
+bones/50/rotation = Quaternion(-0.410961, -0.221721, -0.150851, 0.871318)
 bones/50/scale = Vector3(1.00002, 0.999984, 0.999996)
 bones/51/rotation = Quaternion(-0.0198169, 0.952287, -0.298255, 0.0616513)
 bones/51/scale = Vector3(1, 1, 1)
@@ -326,6 +338,7 @@ bones/55/rotation = Quaternion(-0.548494, 0.228828, 0.17182, 0.785665)
 bones/55/scale = Vector3(1, 1, 1)
 bones/56/rotation = Quaternion(0.0282605, 0.953941, -0.297574, -0.0254451)
 bones/56/scale = Vector3(1, 1, 1)
+script = SubResource("GDScript_d326p")
 
 [node name="characterMedium" parent="SkinnedCharacter/Root/Skeleton3D" index="0"]
 visible = false
@@ -350,10 +363,32 @@ grow_vertical = 2
 stretch = true
 
 [node name="SubViewport" type="SubViewport" parent="SubViewportContainer"]
+handle_input_locally = false
 size = Vector2i(1152, 648)
+render_target_update_mode = 4
+script = ExtResource("8_2cs82")
 
 [node name="Camera3D" type="Camera3D" parent="SubViewportContainer/SubViewport"]
 transform = Transform3D(0.393942, -0.373787, 0.839698, 1.49012e-08, 0.913574, 0.406672, -0.919135, -0.160205, 0.359895, 4.07194, 3.97207, 1.74524)
 script = ExtResource("3_u64x0")
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.05352, -4.11179)
+omni_range = 6.92948
+
+[node name="OmniLight3D2" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.05352, 2.64471)
+omni_range = 6.92948
+
+[node name="Instructions" type="Label" parent="."]
+offset_right = 293.0
+offset_bottom = 169.0
+text = "1: Non-skinned mesh test
+2: Skinned mesh test
+Hold RMB: Rotate camera with mouse
+Mouse Wheel: Zoom in/out
+Space: Pause plane rotation
+W: Toggle wireframe view
+R: Toggle character animation"
 
 [editable path="SkinnedCharacter"]

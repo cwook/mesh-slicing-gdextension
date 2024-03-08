@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://bx1vgheicnank"]
+[gd_scene load_steps=23 format=3 uid="uid://bx1vgheicnank"]
 
 [ext_resource type="Script" path="res://src/main.gd" id="1_kmve1"]
 [ext_resource type="Material" uid="uid://cp8mors8fvy7j" path="res://materials/transparent.tres" id="2_xq8sf"]
@@ -9,6 +9,7 @@
 [ext_resource type="Material" uid="uid://bpjxfhwlqmso" path="res://materials/inner_earth.tres" id="6_a3guo"]
 [ext_resource type="ArrayMesh" uid="uid://cf0s20ov6cl8k" path="res://meshes/multi_surface_cube.mesh" id="6_d6j3i"]
 [ext_resource type="Material" uid="uid://cmani75d48ji2" path="res://materials/earth.tres" id="7_72lvl"]
+[ext_resource type="Script" path="res://src/viewport.gd" id="10_scrmq"]
 [ext_resource type="Script" path="res://src/camera.gd" id="10_xacwh"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_q0qmt"]
@@ -135,6 +136,30 @@ plane_node = NodePath("../../CuttingPlane")
 [node name="CuttingPlane" parent="." instance=ExtResource("6_5qxv0")]
 transform = Transform3D(-0.0278011, -0.26847, -0.962888, -0.322797, 0.914065, -0.245537, 0.946059, 0.303992, -0.112073, -0.100886, 1.90875, -0.319295)
 
-[node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(0.393942, -0.373787, 0.839698, 1.49012e-08, 0.913574, 0.406672, -0.919135, -0.160205, 0.359895, 3.70021, 3.74844, 1.58591)
+[node name="SubViewportContainer" type="SubViewportContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="SubViewportContainer"]
+handle_input_locally = false
+size = Vector2i(1152, 648)
+render_target_update_mode = 4
+script = ExtResource("10_scrmq")
+
+[node name="Camera3D" type="Camera3D" parent="SubViewportContainer/SubViewport"]
+transform = Transform3D(0.393942, -0.373787, 0.839698, 1.49012e-08, 0.913574, 0.406672, -0.919135, -0.160205, 0.359895, 4.07194, 3.97207, 1.74524)
 script = ExtResource("10_xacwh")
+
+[node name="Instructions" type="Label" parent="."]
+offset_right = 40.0
+offset_bottom = 23.0
+text = "1: Non-skinned mesh test
+2: Skinned mesh test
+Hold RMB: Rotate camera with mouse
+Mouse Wheel: Zoom in/out
+Space: Pause plane rotation
+W: Toggle wireframe view"

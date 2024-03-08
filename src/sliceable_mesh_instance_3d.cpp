@@ -9,8 +9,6 @@
 #include <godot_cpp/classes/immediate_mesh.hpp>
 #include <godot_cpp/classes/placeholder_mesh.hpp>
 
-#include <godot_cpp/templates/vector.hpp>
-#include <string>
 
 using namespace godot;
 
@@ -92,7 +90,6 @@ void add_lid_skinned(
 	const PackedInt32Array &p_bones_1, const PackedFloat32Array &p_weights_1,
 	const PackedInt32Array &p_bones_2, const PackedFloat32Array &p_weights_2
 ) {
-	return;
 	p_st->set_normal(p_lid_normal); p_st->set_uv(Vector2(0,0));
 	p_st->set_bones(p_bones_0); p_st->set_weights(p_weights_0);
 	p_st->add_vertex(p_v0);
@@ -119,9 +116,13 @@ Ref<ArrayMesh> SliceableMeshInstance3D::slice_mesh_along_plane(
 		return new_mesh;
 	}
 
+	// todo different lids for each surface? Could be a path to support concave meshes, maybe.
 	// this point is used for adding the "lid"
 	// it will be set to the first created vertex (which is on the edge of the slice).
 	Vector3 pos_on_lid;
+	// tracks the bones and weights for the first vertex of the lid of a skinned mesh
+	// todo: should we make separate slice_surface_along_plane functions for skinned vs. non-skinned meshes?
+	PackedInt32Array bones_on_lid; PackedFloat32Array weights_on_lid;
 	// keep track if pos_on_lid has been set. the first created vertex will set it.
 	bool pos_on_lid_defined = false;
 
@@ -139,7 +140,7 @@ Ref<ArrayMesh> SliceableMeshInstance3D::slice_mesh_along_plane(
 		st_sliced->begin(Mesh::PRIMITIVE_TRIANGLES);
 
 		// will add new mesh data to the surface tools
-		slice_surface_along_plane(mdt, st_sliced, st_lid, pos_on_lid, pos_on_lid_defined, plane_os);
+		slice_surface_along_plane(mdt, st_sliced, st_lid, pos_on_lid, bones_on_lid, weights_on_lid, pos_on_lid_defined, plane_os);
 
 		// shrinks the vertex array by creating an index array (triangle list)
 		// has a high performance penalty for big meshes
@@ -168,7 +169,7 @@ Ref<ArrayMesh> SliceableMeshInstance3D::slice_mesh_along_plane(
 
 void SliceableMeshInstance3D::slice_surface_along_plane(
 	const Ref<MeshDataTool> p_mdt, const Ref<SurfaceTool> p_st_sliced, const Ref<SurfaceTool> p_st_lid,
-	Vector3 &p_pos_on_lid, bool &p_pos_on_lid_defined, const Plane p_plane_os
+	Vector3 &p_pos_on_lid, PackedInt32Array &p_bones_on_lid, PackedFloat32Array &p_weights_on_lid, bool &p_pos_on_lid_defined, const Plane p_plane_os
 ) const {
 
 	Vector3 lid_normal = p_plane_os.normal;
@@ -265,11 +266,17 @@ void SliceableMeshInstance3D::slice_surface_along_plane(
 
 				if (p_pos_on_lid_defined) {
 					if (use_bones)
-						add_lid_skinned(p_st_lid, lid_normal, n0, p_pos_on_lid, n1, verts_bones[b], verts_weights[b], verts_bones[a0], verts_weights[a0], verts_bones[a1], verts_weights[a1]);
+						add_lid_skinned(p_st_lid, lid_normal, n0, p_pos_on_lid, n1, verts_bones[b], verts_weights[b], p_bones_on_lid, p_weights_on_lid, verts_bones[a1], verts_weights[a1]);
 					else
 						add_lid(p_st_lid, lid_normal, n0, p_pos_on_lid, n1);
 				}
-				else { p_pos_on_lid = n0; p_pos_on_lid_defined = true; } // no need to add a lid
+				else { // no need to add a lid
+					p_pos_on_lid = n0; p_pos_on_lid_defined = true;
+					if (use_bones) {
+						p_bones_on_lid = verts_bones[b];
+						p_weights_on_lid = verts_weights[b];
+					}
+				}
 				
 				break;
 			}
@@ -343,11 +350,17 @@ void SliceableMeshInstance3D::slice_surface_along_plane(
 
 				if (p_pos_on_lid_defined) {
 					if (use_bones)
-						add_lid_skinned(p_st_lid, lid_normal, n0, p_pos_on_lid, n1, verts_bones[b1], verts_weights[b1], verts_bones[b0], verts_weights[b0], verts_bones[b0], verts_weights[b0]);
+						add_lid_skinned(p_st_lid, lid_normal, n1, p_pos_on_lid, n0, verts_bones[b1], verts_weights[b1], p_bones_on_lid, p_weights_on_lid, verts_bones[b0], verts_weights[b0]);
 					else
-						add_lid(p_st_lid, lid_normal, n0, p_pos_on_lid, n1);
+						add_lid(p_st_lid, lid_normal, n1, p_pos_on_lid, n0);
 				}
-				else { p_pos_on_lid = n0; p_pos_on_lid_defined = true; } // no need to add a lid
+				else { // no need to add a lid
+					p_pos_on_lid = n0; p_pos_on_lid_defined = true;
+					if (use_bones) {
+						p_bones_on_lid = verts_bones[b0];
+						p_weights_on_lid = verts_weights[b0];
+					}
+				}
 
 				break;
 			}
