@@ -9,7 +9,6 @@
 #include <godot_cpp/classes/immediate_mesh.hpp>
 #include <godot_cpp/classes/placeholder_mesh.hpp>
 
-
 using namespace godot;
 
 void SliceableMeshInstance3D::_bind_methods() {
@@ -122,6 +121,10 @@ Ref<ArrayMesh> SliceableMeshInstance3D::slice_mesh_along_plane(
 	LidData lid_data;
 	// keep track if pos_on_lid has been set. the first created vertex will set it.
 	bool pos_on_lid_defined = false;
+	// keep track of when we assign bone weights to new vertices
+	// the Vector3 will store the position of the new vertex
+	// we can't use indices b/c some new vertices will share the same position
+	HashMap<Vector3, BoneWeightData> new_vertices_bone_weight;
 
 	// surface tool for the lid. all surfaces will add to it and only then will a new surface be created from it.
 	Ref<SurfaceTool> st_lid { new SurfaceTool() };
@@ -137,7 +140,7 @@ Ref<ArrayMesh> SliceableMeshInstance3D::slice_mesh_along_plane(
 		st_sliced->begin(Mesh::PRIMITIVE_TRIANGLES);
 
 		// will add new mesh data to the surface tools
-		slice_surface_along_plane(mdt, st_sliced, st_lid, lid_data, pos_on_lid_defined, plane_os);
+		slice_surface_along_plane(mdt, st_sliced, st_lid, lid_data, pos_on_lid_defined, new_vertices_bone_weight, plane_os);
 
 		// shrinks the vertex array by creating an index array (triangle list)
 		// has a high performance penalty for big meshes
@@ -164,13 +167,17 @@ Ref<ArrayMesh> SliceableMeshInstance3D::slice_mesh_along_plane(
 	return new_mesh;
 }
 
+#define GET_OR_ADD_BONE_WEIGHTS(v, b, w) if (false == p_new_vertices_bone_weight.has(v)) {\
+	p_new_vertices_bone_weight[v] = {b, w};\
+}
+
 void SliceableMeshInstance3D::slice_surface_along_plane(
 	const Ref<MeshDataTool> p_mdt, const Ref<SurfaceTool> p_st_sliced, const Ref<SurfaceTool> p_st_lid,
-	LidData &p_lid_data, bool &p_pos_on_lid_defined, const Plane p_plane_os
+	LidData &p_lid_data, bool &p_pos_on_lid_defined, HashMap<Vector3, BoneWeightData> &p_new_vertices_bone_weight, const Plane p_plane_os
 ) const {
 
 	Vector3 lid_normal = p_plane_os.normal;
-	
+
 	// we only want to add bones and weights if source surface is actually are a skinned mesh
 	bool use_bones = p_mdt->get_format() & (Mesh::ARRAY_FORMAT_BONES | Mesh::ARRAY_FORMAT_WEIGHTS);
 
@@ -216,7 +223,7 @@ void SliceableMeshInstance3D::slice_surface_along_plane(
 				break;
 			}
 			case 2: { // two vertices are above and one below -> remove face, create one new face, create lid
-
+		
 				int32_t a0, a1, b; Vector3 n0, n1; // above (remove), below (keep), new (add)
 				// ensure the winding order stays the same!
 				if (!verts_are_above[0]) { b = 0; a0 = 1; a1 = 2; }
@@ -242,28 +249,40 @@ void SliceableMeshInstance3D::slice_surface_along_plane(
 				// previous order was b -> a0 -> a1, so new order is b -> n0 -> n1
 				p_st_sliced->set_normal(verts_normals[b]); p_st_sliced->set_uv(verts_uvs[b]);
 				if (use_bones) {
-					p_st_sliced->set_bones(verts_bones[b]);
-					p_st_sliced->set_weights(verts_weights[b]);
+					GET_OR_ADD_BONE_WEIGHTS(verts[b], verts_bones[b], verts_weights[b])
+					BoneWeightData bwd = p_new_vertices_bone_weight.get(verts[b]);
+					p_st_sliced->set_bones(bwd.bones);
+					p_st_sliced->set_weights(bwd.weights);
 				}
 				p_st_sliced->add_vertex(verts[b]);
 
 				p_st_sliced->set_normal(n0_normal); p_st_sliced->set_uv(n0_uv);
 				if (use_bones) {
-					p_st_sliced->set_bones(verts_bones[a0]);
-					p_st_sliced->set_weights(verts_weights[a0]);
+					GET_OR_ADD_BONE_WEIGHTS(n0, verts_bones[b], verts_weights[b])
+					BoneWeightData bwd = p_new_vertices_bone_weight[n0];
+					p_st_sliced->set_bones(bwd.bones);
+					p_st_sliced->set_weights(bwd.weights);
 				}
 				p_st_sliced->add_vertex(n0);
 
 				p_st_sliced->set_normal(n1_normal); p_st_sliced->set_uv(n1_uv);
 				if (use_bones) {
-					p_st_sliced->set_bones(verts_bones[a1]);
-					p_st_sliced->set_weights(verts_weights[a1]);
+					GET_OR_ADD_BONE_WEIGHTS(n1, verts_bones[b], verts_weights[b])
+					BoneWeightData bwd = p_new_vertices_bone_weight[n1];
+					p_st_sliced->set_bones(bwd.bones);
+					p_st_sliced->set_weights(bwd.weights);
 				}
 				p_st_sliced->add_vertex(n1);
 
 				if (p_pos_on_lid_defined) {
 					if (use_bones)
-						add_lid_skinned(p_st_lid, lid_normal, n0, p_lid_data.position, n1, verts_bones[b], verts_weights[b], p_lid_data.bones, p_lid_data.weights, verts_bones[a1], verts_weights[a1]);
+					{
+						GET_OR_ADD_BONE_WEIGHTS(verts[b], verts_bones[b], verts_weights[b])
+						BoneWeightData bwd = p_new_vertices_bone_weight[verts[b]];
+						p_st_sliced->set_bones(bwd.bones);
+						p_st_sliced->set_weights(bwd.weights);
+						add_lid_skinned(p_st_lid, lid_normal, n0, p_lid_data.position, n1, verts_bones[b], verts_weights[b], p_lid_data.bones, p_lid_data.weights, verts_bones[b], verts_weights[b]);
+					}
 					else
 						add_lid(p_st_lid, lid_normal, n0, p_lid_data.position, n1);
 				}
@@ -271,8 +290,10 @@ void SliceableMeshInstance3D::slice_surface_along_plane(
 					p_lid_data.position = n0;
 					p_pos_on_lid_defined = true;
 					if (use_bones) {
-						p_lid_data.bones = verts_bones[b];
-						p_lid_data.weights = verts_weights[b];
+						GET_OR_ADD_BONE_WEIGHTS(verts[b], verts_bones[b], verts_weights[b])
+						BoneWeightData bwd = p_new_vertices_bone_weight[verts[b]];
+						p_lid_data.bones = bwd.bones;
+						p_lid_data.weights = bwd.weights;
 					}
 				}
 				
@@ -305,44 +326,56 @@ void SliceableMeshInstance3D::slice_surface_along_plane(
 				// previous order was b1 -> a -> b0, so the first triangle is b1 -> n1 -> n0
 				p_st_sliced->set_normal(verts_normals[b1]); p_st_sliced->set_uv(verts_uvs[b1]);
 				if (use_bones) {
-					p_st_sliced->set_bones(verts_bones[b1]);
-					p_st_sliced->set_weights(verts_weights[b1]);
+					GET_OR_ADD_BONE_WEIGHTS(verts[b1], verts_bones[b1], verts_weights[b1])
+					BoneWeightData bwd = p_new_vertices_bone_weight[verts[b1]];
+					p_st_sliced->set_bones(bwd.bones);
+					p_st_sliced->set_weights(bwd.weights);
 				}
 				p_st_sliced->add_vertex(verts[b1]);
 
 				p_st_sliced->set_normal(n1_normal); p_st_sliced->set_uv(n1_uv);
 				if (use_bones) {
-					p_st_sliced->set_bones(verts_bones[b1]);
-					p_st_sliced->set_weights(verts_weights[b1]);
+					GET_OR_ADD_BONE_WEIGHTS(n1, verts_bones[b1], verts_weights[b1])
+					BoneWeightData bwd = p_new_vertices_bone_weight[n1];
+					p_st_sliced->set_bones(bwd.bones);
+					p_st_sliced->set_weights(bwd.weights);
 				}
 				p_st_sliced->add_vertex(n1);
 
 				p_st_sliced->set_normal(n0_normal); p_st_sliced->set_uv(n0_uv);
 				if (use_bones) {
-					p_st_sliced->set_bones(verts_bones[b0]);
-					p_st_sliced->set_weights(verts_weights[b0]);
+					GET_OR_ADD_BONE_WEIGHTS(n0, verts_bones[b0], verts_weights[b0])
+					BoneWeightData bwd = p_new_vertices_bone_weight[n0];
+					p_st_sliced->set_bones(bwd.bones);
+					p_st_sliced->set_weights(bwd.weights);
 				}
 				p_st_sliced->add_vertex(n0);
 
 				// the second triangle is b1 -> n0 -> b0
 				p_st_sliced->set_normal(verts_normals[b1]); p_st_sliced->set_uv(verts_uvs[b1]);
 				if (use_bones) {
-					p_st_sliced->set_bones(verts_bones[b1]);
-					p_st_sliced->set_weights(verts_weights[b1]);
+					GET_OR_ADD_BONE_WEIGHTS(verts[b1], verts_bones[b1], verts_weights[b1])
+					BoneWeightData bwd = p_new_vertices_bone_weight[verts[b1]];
+					p_st_sliced->set_bones(bwd.bones);
+					p_st_sliced->set_weights(bwd.weights);
 				}
 				p_st_sliced->add_vertex(verts[b1]);
 
 				p_st_sliced->set_normal(n0_normal); p_st_sliced->set_uv(n0_uv);
 				if (use_bones) {
-					p_st_sliced->set_bones(verts_bones[b0]);
-					p_st_sliced->set_weights(verts_weights[b0]);
+					GET_OR_ADD_BONE_WEIGHTS(n0, verts_bones[b0], verts_weights[b0])
+					BoneWeightData bwd = p_new_vertices_bone_weight[n0];
+					p_st_sliced->set_bones(bwd.bones);
+					p_st_sliced->set_weights(bwd.weights);
 				}
 				p_st_sliced->add_vertex(n0);
 
 				p_st_sliced->set_normal(verts_normals[b0]); p_st_sliced->set_uv(verts_uvs[b0]);
 				if (use_bones) {
-					p_st_sliced->set_bones(verts_bones[b0]);
-					p_st_sliced->set_weights(verts_weights[b0]);
+					GET_OR_ADD_BONE_WEIGHTS(verts[b0], verts_bones[b0], verts_weights[b0])
+					BoneWeightData bwd = p_new_vertices_bone_weight[verts[b0]];
+					p_st_sliced->set_bones(bwd.bones);
+					p_st_sliced->set_weights(bwd.weights);
 				}
 				p_st_sliced->add_vertex(verts[b0]);
 
@@ -355,8 +388,10 @@ void SliceableMeshInstance3D::slice_surface_along_plane(
 				else { // no need to add a lid
 					p_lid_data.position = n0; p_pos_on_lid_defined = true;
 					if (use_bones) {
-						p_lid_data.bones = verts_bones[b0];
-						p_lid_data.weights = verts_weights[b0];
+						GET_OR_ADD_BONE_WEIGHTS(verts[b0], verts_bones[b0], verts_weights[b0])
+						BoneWeightData bwd = p_new_vertices_bone_weight[verts[b0]];
+						p_lid_data.bones = bwd.bones;
+						p_lid_data.weights = bwd.weights;
 					}
 				}
 
@@ -364,4 +399,24 @@ void SliceableMeshInstance3D::slice_surface_along_plane(
 			}
 		}
 	}
+
+	HashMap<Vector3, BoneWeightData>::ConstIterator itr, inner_itr;
+	itr = p_new_vertices_bone_weight.begin();
+	while (itr != p_new_vertices_bone_weight.end()) {
+		inner_itr = p_new_vertices_bone_weight.begin();
+		while (inner_itr != p_new_vertices_bone_weight.end()) {
+			if ( (*itr).key == (*inner_itr).key ) {
+				BoneWeightData val = (*itr).value;
+				BoneWeightData in_val = (*inner_itr).value;
+				//printf("key == inner_key\n");
+				//printf( vformat("key == inner_key; checking [%d,%d,%d,%d] == [%d,%d,%d,%d]", val.bones[0],val.bones[1],val.bones[2],val.bones[3], val.weights[0],val.weights[1],val.weights[2],val.weights[3]) );
+				if (val.bones != in_val.bones || val.weights != in_val.weights) {
+					printf("val != in_val\n");
+				}
+			}
+			++inner_itr;
+		}
+		++itr;
+	}
+
 }

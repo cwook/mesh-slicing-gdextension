@@ -5,6 +5,7 @@
 #include <godot_cpp/classes/array_mesh.hpp>
 #include <godot_cpp/classes/mesh_data_tool.hpp>
 #include <godot_cpp/classes/surface_tool.hpp>
+#include <godot_cpp/templates/hash_map.hpp>
 
 namespace godot {
 
@@ -17,6 +18,13 @@ private:
 	// data structure holding info about the starting vertex of a lid
 	struct LidData {
 		Vector3 position;
+		PackedInt32Array bones;
+		PackedFloat32Array weights;
+	};
+	
+	struct BoneWeightData
+	{
+		// Todo: can these be arrays?
 		PackedInt32Array bones;
 		PackedFloat32Array weights;
 	};
@@ -42,7 +50,7 @@ private:
 	) const;
 	void slice_surface_along_plane(
 		const Ref<MeshDataTool> p_mdt, const Ref<SurfaceTool> p_st_sliced, const Ref<SurfaceTool> p_st_lid,
-		LidData &p_lid_data, bool &p_pos_on_lid_defined, const Plane p_plane_os
+		LidData &p_lid_data, bool &p_pos_on_lid_defined, HashMap<Vector3, BoneWeightData> &p_new_vertices_bone_weight, const Plane p_plane_os
 	) const;
 };
 

@@ -1,0 +1,33 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://ck8q5sheyuwd"]
+
+[sub_resource type="Shader" id="Shader_5hqym"]
+code = "shader_type spatial;
+render_mode blend_mix,depth_test_disabled,cull_back,unshaded;
+
+uniform uint bones_to_check[3];
+
+varying vec3 total_weight;
+
+void vertex() {
+	total_weight = vec3(0,0,0);
+	for (int i = 0; i < 4; ++i)
+	{
+		for (int j = 0; j < 3; ++j)
+		{
+			if (BONE_INDICES[i] == bones_to_check[j])
+			{
+				total_weight[j] += BONE_WEIGHTS[i];
+			}
+		}
+	}
+}
+
+void fragment() {
+	ALBEDO = total_weight;
+}
+"
+
+[resource]
+render_priority = 127
+shader = SubResource("Shader_5hqym")
+shader_parameter/bones_to_check = PackedInt32Array(19, 20, 48)

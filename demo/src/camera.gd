@@ -16,7 +16,7 @@ func _input(ev: InputEvent) -> void:
 				rmb_down = ev.pressed
 				Input.mouse_mode = Input.MOUSE_MODE_CAPTURED if rmb_down else Input.MOUSE_MODE_VISIBLE
 			MOUSE_BUTTON_WHEEL_UP:
-				zoom = max(zoom-0.1, 1.0)
+				zoom = max(zoom-0.1, 0.1)
 			MOUSE_BUTTON_WHEEL_DOWN:
 				zoom = min(zoom+0.1, 10.0)
 	
