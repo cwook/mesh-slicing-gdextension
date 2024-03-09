@@ -1,2 +1,7 @@
 # Godot 4+ specific ignores
 .godot/
+
+# dll and library files
+/bin/*.lib
+/bin/*.dll
+/bin/*.exp
